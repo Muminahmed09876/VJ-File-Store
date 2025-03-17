@@ -1,176 +1,88 @@
+# Don't Remove Credit Tg - @VJ_Botz
+# Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
+# Ask Doubt on telegram @KingVJ01
+
+
+import re
 import os
-import logging
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters
-from telegram.ext import CallbackContext
-from datetime import datetime, timedelta
-import time
+from os import environ
+from Script import script
 
-# Set up logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-# API Keys and other configuration
-API_ID = int(os.getenv('API_ID'))
-API_HASH = os.getenv('API_HASH')
-BOT_TOKEN = os.getenv('BOT_TOKEN')
-OWNER_ID = int(os.getenv('OWNER_ID'))
-FILE_STORE_CHANNEL = int(os.getenv('FILE_STORE_CHANNEL'))
-LOG_CHANNEL = int(os.getenv('LOG_CHANNEL'))
-
-# File deletion time (in minutes)
-delete_time = None
-
-# Start Command
-def start(update: Update, context: CallbackContext):
-    user = update.message.from_user
-    if user.id == OWNER_ID:
-        keyboard = [
-            [InlineKeyboardButton("Get Link", callback_data='getlink')],
-            [InlineKeyboardButton("Batch", callback_data='batch')],
-            [InlineKeyboardButton("Custom Batch", callback_data='custom_batch')],
-            [InlineKeyboardButton("Settings", callback_data='setting')],
-            [InlineKeyboardButton("Delete Links", callback_data='delete')],
-        ]
+id_pattern = re.compile(r'^.\d+$')
+def is_enabled(value, default):
+    if value.lower() in ["true", "yes", "1", "enable", "y"]:
+        return True
+    elif value.lower() in ["false", "no", "0", "disable", "n"]:
+        return False
     else:
-        keyboard = [
-            [InlineKeyboardButton("Generate Link", callback_data='generate')]
-        ]
-    
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text('Welcome to the bot! Choose an option:', reply_markup=reply_markup)
+        return default
+      
+# Bot Information
+API_ID = int(environ.get("API_ID", "20980662"))
+API_HASH = environ.get("API_HASH", "4c75ad8dd7a528b4cdba4d53b624ec7a")
+BOT_TOKEN = environ.get("BOT_TOKEN", "7628983840")
 
-# Generate Link Command
-def getlink(update: Update, context: CallbackContext):
-    query = update.callback_query
-    query.answer()
-    
-    keyboard = [
-        [InlineKeyboardButton("One File Store", callback_data='onefile')],
-        [InlineKeyboardButton("Multiple File Store", callback_data='multiplefile')]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    query.edit_message_text(text="Choose an option for file storage:", reply_markup=reply_markup)
+PICS = (environ.get('PICS', 'https://th.bing.com/th/id/R.fa21749d39d8ff8622c2c237ceb5f748?rik=f3h%2b%2fFY2Mm6WVg&riu=http%3a%2f%2fwww.themarysue.com%2fwp-content%2fuploads%2f2015%2f04%2fspider-man.jpg&ehk=rp3sX0qoTecfB0bn3ODwXhKXeCl6JKb%2brMxg59H6n4E%3d&risl=&pid=ImgRaw&r=0')).split() # Bot Start Picture
+ADMINS = [int(admin) if id_pattern.search(admin) else admin for admin in environ.get('ADMINS', '').split()]
+BOT_USERNAME = environ.get("BOT_USERNAME", "Anuplootbot") # without @
+PORT = environ.get("PORT", "8080")
 
-# One File Storage
-def onefile(update: Update, context: CallbackContext):
-    query = update.callback_query
-    query.answer()
-    
-    # Logic for storing one file
-    query.edit_message_text(text="Send me the file to store.")
+# Clone Info :-
+CLONE_MODE = bool(environ.get('CLONE_MODE', False)) # Set True or False
 
-# Multiple Files Storage
-def multiplefile(update: Update, context: CallbackContext):
-    query = update.callback_query
-    query.answer()
+# If Clone Mode Is True Then Fill All Required Variable, If False Then Don't Fill.
+CLONE_DB_URI = environ.get("CLONE_DB_URI", "mongodb+srv://anupinsights:YuWxHMgMtdXdPfiV@cluster0.vp2zz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+CDB_NAME = environ.get("CDB_NAME", "clonetechvj")
 
-    # Logic for storing multiple files
-    query.edit_message_text(text="Send me multiple files to store.")
+# Database Information
+DB_URI = environ.get("DB_URI", "mongodb+srv://anupinsights:oyh48s3ySqe1toxi@cluster0.wukjs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+DB_NAME = environ.get("DB_NAME", "techvjbotz")
 
-# Delete File Command
-def delete(update: Update, context: CallbackContext):
-    query = update.callback_query
-    query.answer()
+# Auto Delete Information
+AUTO_DELETE_MODE = bool(environ.get('AUTO_DELETE_MODE', True)) # Set True or False
 
-    # Deleting a specific file using the link
-    query.edit_message_text(text="Please provide the link to delete the file.")
+# If Auto Delete Mode Is True Then Fill All Required Variable, If False Then Don't Fill.
+AUTO_DELETE = int(environ.get("AUTO_DELETE", "10")) # Time in Minutes
+AUTO_DELETE_TIME = int(environ.get("AUTO_DELETE_TIME", "600")) # Time in Seconds
 
-# Settings Command
-def setting(update: Update, context: CallbackContext):
-    query = update.callback_query
-    query.answer()
-    
-    keyboard = [
-        [InlineKeyboardButton("Automatic Delete", callback_data='auto_delete')],
-        [InlineKeyboardButton("File Protect", callback_data='file_protect')]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    query.edit_message_text(text="Choose settings:", reply_markup=reply_markup)
+# Channel Information
+LOG_CHANNEL = int(environ.get("LOG_CHANNEL", "-1002397218211"))
 
-# Automatic Delete Time
-def auto_delete(update: Update, context: CallbackContext):
-    query = update.callback_query
-    query.answer()
+# File Caption Information
+CUSTOM_FILE_CAPTION = environ.get("CUSTOM_FILE_CAPTION", f"{script.CAPTION}")
+BATCH_FILE_CAPTION = environ.get("BATCH_FILE_CAPTION", CUSTOM_FILE_CAPTION)
 
-    keyboard = [
-        [InlineKeyboardButton("30 Minutes", callback_data='30min')],
-        [InlineKeyboardButton("1 Hour", callback_data='1hour')],
-        [InlineKeyboardButton("3 Hours", callback_data='3hours')],
-        [InlineKeyboardButton("10 Hours", callback_data='10hours')],
-        [InlineKeyboardButton("1 Day", callback_data='1day')],
-        [InlineKeyboardButton("OFF", callback_data='off')]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    query.edit_message_text(text="Set file delete time:", reply_markup=reply_markup)
+# Enable - True or Disable - False
+PUBLIC_FILE_STORE = is_enabled((environ.get('PUBLIC_FILE_STORE', "True")), True)
 
-# File Protect
-def file_protect(update: Update, context: CallbackContext):
-    query = update.callback_query
-    query.answer()
+# Verify Info :-
+VERIFY_MODE = bool(environ.get('VERIFY_MODE', False)) # Set True or False
 
-    keyboard = [
-        [InlineKeyboardButton("ON", callback_data='protect_on')],
-        [InlineKeyboardButton("OFF", callback_data='protect_off')]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    query.edit_message_text(text="File Protect Settings:", reply_markup=reply_markup)
+# If Verify Mode Is True Then Fill All Required Variable, If False Then Don't Fill.
+SHORTLINK_URL = environ.get("SHORTLINK_URL", "") # shortlink domain without https://
+SHORTLINK_API = environ.get("SHORTLINK_API", "") # shortlink api
+VERIFY_TUTORIAL = environ.get("VERIFY_TUTORIAL", "") # how to open link 
 
-# Handler Functions for Specific Actions
-def set_delete_time(update: Update, context: CallbackContext):
-    global delete_time
-    query = update.callback_query
-    query.answer()
-    
-    # Set the delete time based on the selection
-    if query.data == '30min':
-        delete_time = timedelta(minutes=30)
-    elif query.data == '1hour':
-        delete_time = timedelta(hours=1)
-    elif query.data == '3hours':
-        delete_time = timedelta(hours=3)
-    elif query.data == '10hours':
-        delete_time = timedelta(hours=10)
-    elif query.data == '1day':
-        delete_time = timedelta(days=1)
-    elif query.data == 'off':
-        delete_time = None
+# Website Info:
+WEBSITE_URL_MODE = bool(environ.get('WEBSITE_URL_MODE', False)) # Set True or False
 
-    query.edit_message_text(text=f"File delete time set to: {query.data}")
+# If Website Url Mode Is True Then Fill All Required Variable, If False Then Don't Fill.
+WEBSITE_URL = environ.get("WEBSITE_URL", "") # For More Information Check Video On Yt - @Tech_VJ
 
-# Protect File Actions
-def protect_file(update: Update, context: CallbackContext):
-    query = update.callback_query
-    query.answer()
-    
-    if query.data == 'protect_on':
-        # Logic to protect files from being forwarded
-        query.edit_message_text(text="File protection is ON.")
-    elif query.data == 'protect_off':
-        # Logic to unprotect files from being forwarded
-        query.edit_message_text(text="File protection is OFF.")
+# File Stream Config
+STREAM_MODE = bool(environ.get('STREAM_MODE', True)) # Set True or False
 
-# Main function to run the bot
-def main():
-    updater = Updater(BOT_TOKEN, use_context=True)
-    dispatcher = updater.dispatcher
-    
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("getlink", getlink))
-    dispatcher.add_handler(CommandHandler("setting", setting))
-    dispatcher.add_handler(CommandHandler("delete", delete))
-    
-    dispatcher.add_handler(CallbackQueryHandler(getlink, pattern='getlink'))
-    dispatcher.add_handler(CallbackQueryHandler(onefile, pattern='onefile'))
-    dispatcher.add_handler(CallbackQueryHandler(multiplefile, pattern='multiplefile'))
-    dispatcher.add_handler(CallbackQueryHandler(delete, pattern='delete'))
-    dispatcher.add_handler(CallbackQueryHandler(setting, pattern='setting'))
-    dispatcher.add_handler(CallbackQueryHandler(auto_delete, pattern='auto_delete'))
-    dispatcher.add_handler(CallbackQueryHandler(file_protect, pattern='file_protect'))
-    
-    updater.start_polling()
-    updater.idle()
+# If Stream Mode Is True Then Fill All Required Variable, If False Then Don't Fill.
+MULTI_CLIENT = False
+SLEEP_THRESHOLD = int(environ.get('SLEEP_THRESHOLD', '60'))
+PING_INTERVAL = int(environ.get("PING_INTERVAL", "1200"))  # 20 minutes
+if 'DYNO' in environ:
+    ON_HEROKU = True
+else:
+    ON_HEROKU = False
+URL = environ.get("URL", "https://testofvjfilter-1fa60b1b8498.herokuapp.com/")
 
-if __name__ == '__main__':
-    main()
+
+# Don't Remove Credit Tg - @VJ_Botz
+# Subscribe YouTube Channel For Amazing Bot https://youtube.com/@Tech_VJ
+# Ask Doubt on telegram @KingVJ01
